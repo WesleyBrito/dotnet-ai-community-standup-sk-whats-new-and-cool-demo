@@ -18,6 +18,9 @@ namespace Demo.Steps;
 /// </remarks>
 internal sealed class RenderMessageStep : KernelProcessStep
 {
+
+#pragma warning disable S3218 // Inner class members should not shadow outer class "static" or type members
+
     public static class Functions
     {
         public const string RenderDone = nameof(RenderMessageStep.RenderDone);
@@ -26,6 +29,8 @@ internal sealed class RenderMessageStep : KernelProcessStep
         public const string RenderMessage = nameof(RenderMessageStep.RenderMessage);
         public const string RenderUserText = nameof(RenderMessageStep.RenderUserText);
     }
+
+#pragma warning restore S3218 // Inner class members should not shadow outer class "static" or type members
 
     private readonly static Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -43,7 +48,17 @@ internal sealed class RenderMessageStep : KernelProcessStep
 
     public static void Render(string message)
     {
-        Console.WriteLine($"[{stopwatch.Elapsed:mm\\:ss}] {message}");
+        var aux = Console.ForegroundColor;
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write($"\n[{stopwatch.Elapsed:mm\\:ss}] ");
+        Console.ForegroundColor = aux;
+        Console.WriteLine(message);
+    }
+
+    public static void Render(ChatMessageContent message, bool indent = false)
+    {
+        var displayName = !string.IsNullOrWhiteSpace(message.AuthorName) ? $@" - {message.AuthorName}" : string.Empty;
+        Render($"{(indent ? "\t" : string.Empty)}{message.Role.Label.ToUpperInvariant()}{displayName}: {message.Content}");
     }
 
     /// <summary>
@@ -53,9 +68,9 @@ internal sealed class RenderMessageStep : KernelProcessStep
     public static void RenderError(KernelProcessError error, ILogger logger)
     {
         var message = string.IsNullOrWhiteSpace(error.Message) ? @"Unexpected failure" : error.Message;
-        
+
         Render($@"ERROR: {message} [{error.GetType().Name}]{Environment.NewLine}{error.StackTrace}");
-        
+
         logger.LogError(@"Unexpected failure: {ErrorMessage} [{ErrorType}]", error.Message, error.Type);
     }
 
@@ -83,18 +98,23 @@ internal sealed class RenderMessageStep : KernelProcessStep
     [KernelFunction]
     public static void RenderInnerMessage(ChatMessageContent message)
     {
-        Console.ForegroundColor = ConsoleColor.Yellow;
+        if (message.AuthorName == null)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+        }
+        else if (message.AuthorName.Equals(@"CreativeDirector", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.ForegroundColor = ConsoleColor.Magenta;
+        }
+        else if (message.AuthorName.Equals(@"Copywriter", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+        }
+
         Render(message);
         Console.ResetColor();
-    }
-
-    public static void Render(ChatMessageContent message, bool indent = false)
-    {
-        var displayName = !string.IsNullOrWhiteSpace(message.AuthorName) ? $@" - {message.AuthorName}" : string.Empty;
-        Render($"{(indent ? "\t" : string.Empty)}{message.Role.Label.ToUpperInvariant()}{displayName}: {message.Content}");
     }
 }
 
 #pragma warning restore SKEXP0080
 #pragma warning restore SKEXP0001
-

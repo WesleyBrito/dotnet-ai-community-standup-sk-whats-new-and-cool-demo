@@ -10,10 +10,6 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
-
-
-////using OpenAI.Chat;
 
 using System.ComponentModel;
 using System.Text.Json;
@@ -67,13 +63,13 @@ internal sealed class ManagerAgentStep : KernelProcessStep
 
         var intentEventId = Events.UserInputComplete;
 
-        if (intent.IsRequestingUserInput)
-        {
-            intentEventId = Events.Agents.AgentResponded;
-        }
         if (intent.IsRequestingConfirmation)
         {
             intentEventId = Events.Agents.AgentRequestUserConfirmation;
+        }
+        else if (intent.IsRequestingUserInput)
+        {
+            intentEventId = Events.Agents.AgentResponded;
         }
         else if (intent.IsWorking)
         {
@@ -117,7 +113,7 @@ internal sealed class ManagerAgentStep : KernelProcessStep
 
     private static async Task<IntentResult> IsRequestingUserInputAsync(Kernel kernel, ChatHistory history, ILogger logger)
     {
-        ChatHistory localHistory = [new ChatMessageContent(AuthorRole.System, @"Analyze the conversation and determine if user input is required."), .. history.TakeLast(1)];
+        ChatHistory localHistory = [new ChatMessageContent(AuthorRole.System, @"Analyze the conversation."), .. history.TakeLast(1)];
 
         var service = kernel.GetRequiredService<IChatCompletionService>();
 
@@ -133,14 +129,13 @@ internal sealed class ManagerAgentStep : KernelProcessStep
     [Description("this is the result description")]
     public sealed class IntentResult
     {
-        ////[Description(@"True if user input is requested or solicited. Addressing the user with no specific request is False. Asking a question to the user is True.")]
-        [Description(@"True if you do not have a clear instruction on what the user ask you to do. Addressing the user with no specific request is False. Asking a question to the user is False.")]
+        [Description(@"True if you need the user to tell you what to do. False if you are asking a question or requesting confirmation.")]
         public bool IsRequestingUserInput { get; set; }
 
-        [Description(@"True when asking a question to the user. Otherwise false.")]
+        [Description(@"True if you are asking a question or requesting confirmation.")]
         public bool IsRequestingConfirmation { get; set; }
 
-        [Description(@"True if the user request is clear to work on.")]
+        [Description(@"True if the user request is clear to work on. False if you are asking a question.")]
         public bool IsWorking { get; set; }
 
         [Description(@"Rationale for the value assigned to IsRequestingUserInput and IsRequestingConfirmation")]

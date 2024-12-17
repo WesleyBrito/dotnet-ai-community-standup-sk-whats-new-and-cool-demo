@@ -23,7 +23,7 @@ internal sealed class ImageCreatorStep : KernelProcessStep
     }
 
     [KernelFunction(Functions.CreateImageForCopy)]
-    public static async Task CreateImageForCopy(KernelProcessStepContext context, Kernel kernel, string copy)
+    public static async Task CreateImageForCopyAsync(KernelProcessStepContext context, Kernel kernel, string copy)
     {
         var imageTask = await kernel.GetRequiredService<ITextToImageService>().GenerateImageAsync(copy, 1024, 1024);
 

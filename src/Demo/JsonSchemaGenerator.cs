@@ -9,7 +9,7 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace Demo;
 
-internal class JsonSchemaGenerator
+internal static class JsonSchemaGenerator
 {
     private static JsonSerializerOptions? DefaultJsonSerializerOptions;
 
@@ -27,10 +27,11 @@ internal class JsonSchemaGenerator
 
     public static string FromType<TSchemaType>()
     {
-        JsonSerializerOptions options = new(JsonSerializerOptions.Default)
-        {
-            UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
-        };
+        ////JsonSerializerOptions options = new(JsonSerializerOptions.Default)
+        ////{
+        ////    UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+        ////};
+
         AIJsonSchemaCreateOptions config = new()
         {
             IncludeSchemaKeyword = false,

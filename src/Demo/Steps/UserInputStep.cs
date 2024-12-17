@@ -6,7 +6,7 @@ namespace Demo.Steps;
 
 internal sealed class UserInputStep : KernelProcessStep<UserInputState>
 {
-    private UserInputState? state;
+    private UserInputState state;
 
     public static class Functions
     {
@@ -17,7 +17,7 @@ internal sealed class UserInputStep : KernelProcessStep<UserInputState>
 
     public override ValueTask ActivateAsync(KernelProcessStepState<UserInputState> state)
     {
-        this.state = state.State;
+        this.state = state.State!;
 
         return ValueTask.CompletedTask;
     }

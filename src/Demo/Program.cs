@@ -43,9 +43,10 @@ const string CreativeDirectorName = "CreativeDirector";
 const string CreativeDirectorInstructions =
     """
     You are a creative director who has opinions about copywriting born of a love for David Ogilvy and Harrison McCann.
-    Your goal is to determine if a given copy is acceptable to print, even if it isn't perfect. 
+    Your goal is to determine if a given copy is acceptable to print, even if it isn't perfect.     
+    Never lose focus on the goal at hand and what the user is asking for.
     If not, provide insight on how to refine suggested copy without example.
-    Always respond to the most recent message by evaluating and providing critique without example.    
+    Always respond to the most recent message by evaluating and providing critique without example.
     If copy is acceptable and meets your criteria, state that it is approved.
     If not, provide insight on how to refine suggested copy without examples.
     """;
@@ -53,11 +54,11 @@ const string CreativeDirectorInstructions =
 const string CopywriterName = "Copywriter";
 const string CopywriterInstructions =
     """
-    You are a copywriter with ten years of experience and are known for brevity and a dry humor.
+    You are a copywriter with a lot of years of experience and are known for brevity and a dry humor.
     You're laser focused on the goal at hand.
     Don't waste time with chit chat.
     Your goal is to refine and decide on one single best copy as an expert in the field.
-    Just create one copy.
+    Simply create a copy while always maintaining the essence of the original request.
     Consider suggestions when refining an idea.
     """;
 
@@ -115,18 +116,17 @@ foreach (var message in history)
     RenderMessageStep.Render(message);
 }
 
-/*****************************************************************************/
+/* Support Methods */
 
 static ChatCompletionAgent CreateAgent(string name, string instructions, Kernel kernel) => new()
 {
     Name = name,
     Instructions = instructions,
     Kernel = kernel.Clone(),
-    ////Arguments = new KernelArguments(new AzureOpenAIPromptExecutionSettings
-    ////{
-    ////    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
-    ////    Temperature = 0,
-    ////}),
+    Arguments = new()
+    {
+        { "color", 1 },
+    }
 };
 
 static void SetupAgents(IKernelBuilder builder, Kernel kernel)
@@ -246,15 +246,7 @@ static KernelProcess SetupAgentProcess(string processName)
     // Pass user input to primary agent
     userInputStep
         .OnEvent(Events.UserInputReceived)
-        .SendEventTo(new ProcessFunctionTargetBuilder(managerAgentStep, ManagerAgentStep.Functions.InvokeAgent))
-        ////.SendEventTo(new ProcessFunctionTargetBuilder(renderMessageStep, RenderMessageStep.Functions.RenderUserText, parameterName: "message"))
-        ;
-
-    ////// Process completed
-    ////userInputStep
-    ////    .OnEvent(Events.UserInputComplete)
-    ////    .SendEventTo(new ProcessFunctionTargetBuilder(renderMessageStep, RenderMessageStep.Functions.RenderDone))
-    ////    .StopProcess();
+        .SendEventTo(new ProcessFunctionTargetBuilder(managerAgentStep, ManagerAgentStep.Functions.InvokeAgent));
 
     // Render response from primary agent
     managerAgentStep
@@ -299,7 +291,6 @@ static KernelProcess SetupAgentProcess(string processName)
     imageCreatorStep
         .OnEvent(Events.ImageCreated)
         .SendEventTo(new ProcessFunctionTargetBuilder(managerAgentStep, ManagerAgentStep.Functions.ReceiveResponse, parameterName: "response"));
-
 
     var kernelProcess = process.Build();
 
