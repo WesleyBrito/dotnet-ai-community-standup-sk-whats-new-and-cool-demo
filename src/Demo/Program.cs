@@ -122,11 +122,7 @@ static ChatCompletionAgent CreateAgent(string name, string instructions, Kernel 
 {
     Name = name,
     Instructions = instructions,
-    Kernel = kernel.Clone(),
-    Arguments = new()
-    {
-        { "color", 1 },
-    }
+    Kernel = kernel.Clone(),    
 };
 
 static void SetupAgents(IKernelBuilder builder, Kernel kernel)
